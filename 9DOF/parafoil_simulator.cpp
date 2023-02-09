@@ -27,16 +27,13 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     vel_c << x(9), x(10), x(11);
     vel_rotb << x(12), x(13), x(14);
     vel_rotp << x(15), x(16), x(17);
-    //Fr << x(18), x(19), x(20);
-    //vel_rotb = Wrot(rotb)*vel_rotb;
-    //vel_rotp = Wrot(rotp)*vel_rotp;
 
     Vector3d Xcb, Xcp;
     Xcp <<  -1.3,  0,  -7.5;
     Xcb <<  0.0,  0,  0.5;
     vel_b = Trot(rotb)*vel_c+Omrot(vel_rotb)*Xcb;
     vel_p = Trot(rotp)*vel_c+Omrot(vel_rotp)*Xcp;
-
+    
     MatrixXd I = Matrix<double, 3, 3>::Identity();
     state_matrix A;
     A.setZero();
@@ -45,25 +42,23 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     A.block<3,3>(3,3) = Ip()+IF();
     A.block<3,3>(6,0) = Mpay*Trot(rotb);
     A.block<3,3>(6,6) = -Mpay*Omrot(Xcb);
+    cout<< "A = \n " << A << endl;
 
     Matrix<double, 9, 1> B;
     B.setZero();
-    B.block<3,1>(0,0) =  Fa_w(vel_p)+W_w(rotp)-((Mpar*I+MF())*Omrot(vel_rotp)*Omrot(vel_rotp))*(Xcp) - Omrot(vel_rotp)*MF()*vel_p;
+    B.block<3,1>(0,0) =  Fa_w(vel_p)+W_w(rotp)-((Mpar*I+MF())*Omrot(vel_rotp)*Omrot(vel_rotp))*(Xcp) - Omrot(vel_rotp)*MF()*vel_p;    
     B.block<3,1>(3,0) = Ma_w(vel_p,vel_rotp,rotp)-Trot(rotp)*(Trot(rotb).transpose())*Mc(rotb,rotp,vel_rotb,vel_rotp)-Omrot(vel_rotp)*(Ip()+IF())*vel_rotp - Omrot(vel_p)*MF()*vel_p;
     B.block<3,1>(6,0) = Fa_b(vel_b)+W_b(rotb)-Mpay*Omrot(vel_rotb)*Omrot(vel_rotb)*Xcb;
-
 
 
     Matrix<double, 9, 1> system_res;
     system_res = A.completeOrthogonalDecomposition().solve(B);
 
-    double relative_error = (A*system_res - B).norm() /B.norm(); // norm() is L2 norm
-    cout << "The relative error is:\n" << relative_error << endl;
-
     dxdt.block<3,1>(0,0) = vel_c;
     dxdt.block<3,1>(3,0) = vel_rotb;
     dxdt.block<3,1>(6,0) = vel_rotp;
     dxdt.block<9,1>(9,0) = system_res;
+    
     
 }
 

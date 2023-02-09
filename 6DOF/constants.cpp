@@ -19,8 +19,8 @@ namespace constants
     extern const double a { 0.8};
     extern const double Sw {21.0};
     extern const double Sp {0.5};
-    extern const double Kc {1.0};
-    extern const double Cc {0.05};
+    extern const double Kc {1000000.0};
+    extern const double Cc {0.5};
     
     // Aerodynamic coefficients
     extern const double CL0 { 0.4};

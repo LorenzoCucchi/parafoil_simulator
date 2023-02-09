@@ -20,6 +20,7 @@ Vector3d Fa_b(Vector3d vec)
 double CD_b(Vector3d vec)
 {
     double alpha = atan2(vec(2), vec(0));
+    if (alpha >= (12.0*pi/180.0))  alpha = (12.0*pi/180.0);
     double cd = CD0 + CDa * pow(alpha, 2);
     return cd;
 }
@@ -47,6 +48,7 @@ Vector3d Fa_w(Vector3d vec)
 double CL_w(Vector3d vec)
 {
     double alpha = atan2(vec(2), vec(0));
+    if (alpha >= (12.0*pi/180.0))  alpha = (12.0*pi/180.0);
     double cl = CL0 + CLa * alpha;
     return cl;
 }
