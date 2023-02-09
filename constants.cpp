@@ -16,10 +16,10 @@ namespace constants
     extern const double b { 7};
     extern const double c { 3};
     extern const double t { 0.3};
-    extern const double a { 0.6};
+    extern const double a { 0.8};
     extern const double Sw {21.0};
     extern const double Sp {0.5};
-    extern const double Kc {0.5};
+    extern const double Kc {1.0};
     extern const double Cc {0.05};
     
     // Aerodynamic coefficients

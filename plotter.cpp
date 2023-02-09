@@ -14,18 +14,19 @@ int plot_flight(vector<double> x, vector<double> y, vector<double> z, vector<dou
     Plot2D plot1;
     plot1.xlabel("t [s]");
     plot1.ylabel("th [degree]");
-    plot1.drawCurve(t, vx).label("theta");
+    plot1.drawCurve(t, vx).label("vx");
 
     Plot2D plot2;
     plot2.xlabel("t [s]");
     plot2.ylabel("velocity [m/s]");
-    plot2.drawCurve(t, vx).label("u");
-    plot2.drawCurve(t, vy).label("w");
+    plot2.drawCurve(t, vx).label("vx");
+    plot2.drawCurve(t, vy).label("vy");
+    plot2.drawCurve(t, vz).label("vz");
 
     Plot2D plot3;
     plot3.xlabel("t [s]");
     plot3.ylabel("q [degree]");
-    plot3.drawCurve(t, vz).label("q");
+    plot3.drawCurve(t, vz).label("vz");
 
     // Use the previous plots as sub-figures in a larger 2x2 figure.
     Figure fig = {{plot0, plot1},

@@ -1,4 +1,5 @@
 #include "forces.h"
+#include <iostream>
 #include "constants.h"
 #include <Eigen/Dense>
 
@@ -64,9 +65,9 @@ Vector3d W_w(Vector3d vec)
 Vector3d Ma_w(Vector3d vel, Vector3d w, Vector3d rot){
     double q = 0.5*rho*Sw*vel.squaredNorm();
     Vector3d m;
-    m(0) = q*Clp*pow(b,2)*w(0)/(2*vel.norm()) + Clphi*b*rot(0);
-    m(1) = q*Clp*pow(c,2)*w(1)/(2*vel.norm()) + Cm0*c + Cma*c*atan2(vel(2), vel(0));
-    m(2) = q*Cnr*pow(b,2)*w(2)/(2*vel.norm());
+    m(0) = q*(Clp*pow(b,2)*w(0)/(2*vel.norm()) + Clphi*b*rot(0));
+    m(1) = q*(Clp*pow(c,2)*w(1)/(2*vel.norm()) + Cm0*c + Cma*c*atan2(vel(2), vel(0)));
+    m(2) = q*(Cnr*pow(b,2)*w(2)/(2*vel.norm()));
     return m;
 }
 
@@ -163,7 +164,7 @@ Matrix3d Ip(){
     I(2,0) = 0.0;
     I(2,1) = 0.0;
     I(2,2) = pow(b,2)+pow(c,2);
-    I = I*Mpay/12;
+    I = I*Mpar/12;
     return I;
 }
 

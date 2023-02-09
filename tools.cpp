@@ -22,3 +22,11 @@ Matrix3d Omrot(Vector3d vec){
     return Mat;
 }
 
+Matrix3d Wrot(Vector3d vec){
+    Matrix3d Mat;
+    Mat.row(0) << 1.0, sin(vec(0))*tan(vec(1)), cos(vec(0))*tan(vec(1));
+    Mat.row(1) << 0.0, cos(vec(0)), -sin(vec(0));
+    Mat.row(2) << 0.0, sin(vec(0))/cos(vec(1)), cos(vec(0))/cos(vec(1));
+    return Mat;
+}
+

@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include "constants.h"
+#include <iostream>
 
 using namespace std;
 using namespace Eigen;
