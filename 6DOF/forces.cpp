@@ -119,7 +119,7 @@ Matrix32d SFa(Vector3d vec, double delta){
     F(1,0) = q*(-CDda*vec(1)*sign);
     F(1,1) = q*(-CDds*vec(1));
     F(2,0) = q*(-CLda*vec(0)-CDda*vec(2))*sign;
-    F(2,1) = q*(-CLda*vec(0)-CDda*vec(2));
+    F(2,1) = q*(-CLds*vec(0)-CDds*vec(2));
     return F;
 }
 
@@ -128,13 +128,13 @@ Matrix32d SMa(Vector3d vec, double delta){
     if (delta >= 0.0)  sign = 1; 
     else delta = -1; 
 
-    double q = 0.5*rho*Sw*vec.squaredNorm();
+    double q = 0.5*rho*Sw*vec.squaredNorm()*b/t;
     Matrix32d M;
-    M(0,0) = q*(CLda*vec(2)-CDda*vec(0))*sign;
+    M(0,0) = q*Clda;
     M(0,1) = 0.0;
     M(1,0) = 0.0;
     M(1,1) = 0.0;
-    M(2,0) = q*(-CLda*vec(0)-CDda*vec(2))*sign;
+    M(2,0) = q*Cnda;
     M(2,1) = 0.0;
 
     return M;
