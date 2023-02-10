@@ -2,6 +2,7 @@
 #include <boost/numeric/odeint.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include <chrono>
 #include "tools.h"
 #include "constants.h"
 #include "forces.h"
@@ -10,6 +11,7 @@
 
 
 using namespace std;
+using namespace std::chrono;
 using namespace boost::numeric::odeint;
 using namespace Eigen;
 using namespace constants;
@@ -29,36 +31,47 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
 
     Vector2d sig;
     sig << 0.0, 0.0;
-
     Vector3d Xgb, Xgp;
     Xgp <<  -1.3,  0,  -7.4;
     Xgb <<  0.0,  0,  0.66;
-    vel_b = vel_c+Omrot(vel_rot)*Xgb;
-    vel_p = vel_c+Omrot(vel_rot)*Xgp;
     
+    Matrix3d Om, Rgp, Rgb, Mf;
+    Mf = MF();
+    Om = Omrot(vel_rot);
+    Rgp = Omrot(Xgp);
+    Rgb = Omrot(Xgb);
+    
+   
+    vel_b = vel_c+Om*Xgb;
+    vel_p = vel_c+Om*Xgp;
+    
+    
+
     MatrixXd I = Matrix<double, 3, 3>::Identity();
     state_matrix A;
     A.setZero();
-    A.block<3,3>(0,0) = ((Mpar+Mpay)*I+MF());
-    A.block<3,3>(3,0) = Omrot(Xgp)*MF();
+    A.block<3,3>(0,0) = ((Mpar+Mpay)*I+Mf);
+    A.block<3,3>(3,0) = Omrot(Xgp)*Mf;
     A.block<3,3>(3,3) = Ip()+Ib()+IF();
 
     Matrix<double, 6, 1> B,Sd;
     B.setZero();
-    B.block<3,1>(0,0) =  Fa_w(vel_p)+W_w(rot_c)+W_b(rot_c) + Fa_b(vel_b) - Omrot(vel_rot)*MF()*vel_p - ((Mpar+Mpay)*I+MF())*Omrot(vel_rot)*vel_c;
-    B.block<3,1>(3,0) = Ma_w(vel_p,vel_rot,rot_c)-Omrot(vel_p)*MF()*vel_p + Omrot(Xgp)*Fa_w(vel_p) - Omrot(Xgp)*Omrot(vel_rot)*MF()*vel_p + Omrot(Xgb)*Fa_b(vel_b) - Omrot(vel_rot)*(Ip()+Ib()+IF())*vel_rot;
+    B.block<3,1>(0,0) =  Fa_w(vel_p)+W_w(rot_c)+W_b(rot_c) + Fa_b(vel_b) - Om*Mf*vel_p - ((Mpar+Mpay)*I+Mf)*Om*vel_c;
+    B.block<3,1>(3,0) = Ma_w(vel_p,vel_rot,rot_c)-Omrot(vel_p)*Mf*vel_p + Omrot(Xgp)*Fa_w(vel_p) - Rgp*Om*Mf*vel_p + Rgb*Fa_b(vel_b) - Om*(Ip()+Ib()+IF())*vel_rot;
 
     Matrix<double, 6, 2> S;
     S.setZero();
     S.block<3,2>(0,0) =  SFa(vel_p,sig(0));
-    S.block<3,2>(3,0) = SMa(vel_p,sig(0))+Omrot(Xgp)*SFa(vel_p,sig(0));
+    S.block<3,2>(3,0) = SMa(vel_p,sig(0))+Rgp*SFa(vel_p,sig(0));
     //cout<<"S: "<<endl<<S*sig<<endl;
     if (t>=10 && t<30) {sig << 40.0*pi/180, 0.0*pi/180;}
+    if (t>=30 && t<40) {sig << -20.0*pi/180, 0.0*pi/180;}
 
     Sd = S*sig;
    
     Matrix<double, 6, 1> system_res;
-    system_res = A.completeOrthogonalDecomposition().solve(B) + A.completeOrthogonalDecomposition().solve(Sd);
+    system_res = A.householderQr().solve((B+Sd));
+    //system_res = A.completeOrthogonalDecomposition().solve(B) + A.completeOrthogonalDecomposition().solve(Sd);
     
     vel_c = Trot(rot_c)*vel_c;
     dxdt.block<3,1>(0,0) = vel_c;
@@ -87,13 +100,14 @@ double t = t0;
 
 vector<double> x_c,y_c,z_c,v_x,v_y,v_z,t_s,r_x,r_y,r_z;
 double z_land = 0.0;
-double z_ref = 200.0;
+double z_ref = x(2);
 
 cout << "Insert final time\n"<<endl;
 cin >> tf;
 
+auto start = high_resolution_clock::now();
 runge_kutta4<state_type> stepper;
-    while (t <= tf) {
+    while (z_ref<=z_land) {
         t += dt;
         stepper.do_step(my_system, x, t, dt);
         x_c.push_back(x(0));
@@ -108,6 +122,10 @@ runge_kutta4<state_type> stepper;
         t_s.push_back(t);
         z_ref = x(2);
     }
+auto stop = high_resolution_clock::now();
+auto duration = duration_cast<milliseconds>(stop - start);
+cout << duration.count() << endl;
+
 int p = plot_flight(x_c,y_c,z_c,r_x,r_y,r_z,v_x,v_y,v_z,t_s);
 
 
