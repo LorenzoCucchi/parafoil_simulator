@@ -62,7 +62,7 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
 int main(){
 
 state_type x;
-x << 0.0, 0.0, -200.0, //position
+x << 0.0, 0.0, -400.0, //position
     0.0, 0.0, 0.0*pi/180,    //rotation 
     13.0, 0.0, 2.0,  //velocity 
     0.0, 0.0, 0.0;    //vel rotation 
