@@ -17,8 +17,6 @@ using namespace Eigen;
 using namespace constants;
 
 typedef Matrix<double, 12, 1> state_type;
-typedef Matrix<double, 6, 6> state_matrix;
-
 
 void my_system(const state_type &x, state_type &dxdt, const double t){
     Vector3d pos_c, rot_c, vel_c, vel_rot, vel_b, vel_p, vel_rot_eul;
@@ -30,13 +28,9 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     vel_rot = Wrot(rot_c)*vel_rot;
 
     Vector2d sig;
-    sig << 0.0, 0.0;
-    Vector3d Xgb, Xgp;
-    Xgp <<  -1.3,  0,  -7.4;
-    Xgb <<  0.0,  0,  0.66;
-    
-    Matrix3d Om, Rgp, Rgb, Mf;
-    Mf = MF();
+    sig.setZero();
+ 
+    Matrix3d Om, Rgp, Rgb;
     Om = Omrot(vel_rot);
     Rgp = Omrot(Xgp);
     Rgb = Omrot(Xgb);
@@ -45,30 +39,22 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     vel_b = vel_c+Om*Xgb;
     vel_p = vel_c+Om*Xgp;
     
-    MatrixXd I = Matrix<double, 3, 3>::Identity();
-    state_matrix A;
-    A.setZero();
-    A.block<3,3>(0,0) = ((Mpar+Mpay)*I+Mf);
-    A.block<3,3>(3,0) = Rgp*Mf;
-    A.block<3,3>(3,3) = Ip()+Ib()+IF();
+    if (t>=10 && t<1000) {sig << 30.0*pi/180, 0.0*pi/180;}
+
 
     Matrix<double, 6, 1> B,Sd;
-    B.block<3,1>(0,0) =  Fa_w(vel_p)+W_w(rot_c)+W_b(rot_c) + Fa_b(vel_b) - Om*Mf*vel_p - ((Mpar+Mpay)*I+Mf)*Om*vel_c;
-    B.block<3,1>(3,0) = Ma_w(vel_p,vel_rot,rot_c)-Omrot(vel_p)*Mf*vel_p + Rgp*Fa_w(vel_p) - Rgp*Om*Mf*vel_p + Rgb*Fa_b(vel_b) - Om*(Ip()+Ib()+IF())*vel_rot;
+    B.block<3,1>(0,0) =  Fa_w(vel_p)+W_w(rot_c)+W_b(rot_c)-(Mpay+Mpar)*Om*vel_c + Fa_b(vel_b) + SFa(vel_p,sig(0))*sig;
+    B.block<3,1>(3,0) = Ma_w(vel_p,vel_rot,rot_c) + Rgp*Fa_w(vel_p) + Rgb*Fa_b(vel_b) - Om*(Ip()+Ib())*vel_rot+(SMa(vel_p,sig(0))+Rgp*SFa(vel_p,sig(0)))*sig;
 
-    Matrix<double, 6, 2> S;
-    S.block<3,2>(0,0) =  SFa(vel_p,sig(0));
-    S.block<3,2>(3,0) = SMa(vel_p,sig(0))+Rgp*SFa(vel_p,sig(0));
-    //cout<<"S: "<<endl<<S*sig<<endl;
-    if (t>=10 && t<1000) {sig << 30.0*pi/180, 0.0*pi/180;}
-    //if (t>=30 && t<40) {sig << 20.0*pi/180, 0.0*pi/180;}
+      
+    vel_c = Trot(rot_c).transpose()*vel_c;
 
-    Sd = S*sig;
-   
-    dxdt.block<3,1>(0,0) = Trot(rot_c).transpose()*vel_c;
-    dxdt.block<3,1>(3,0) = Wrot(rot_c).transpose()*vel_rot;
-    dxdt.block<6,1>(6,0) = A.householderQr().solve((B+Sd));
-    
+
+    dxdt.block<3,1>(0,0) = vel_c;
+    dxdt.block<3,1>(3,0) = Wrot(rot_c)*vel_rot;
+    dxdt.block<3,1>(6,0) = 1/(Mpar+Mpay) * B.block<3,1>(0,0);
+    dxdt.block<3,1>(9,0) = I_i*B.block<3,1>(3,0);
+
 }
 
 
