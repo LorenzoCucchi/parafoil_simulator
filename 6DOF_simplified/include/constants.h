@@ -24,6 +24,7 @@ namespace constants
     extern const double Sp;
     extern const double Kc;
     extern const double Cc; 
+    extern const Eigen::Matrix<double, 3, 3> I;
     extern const Eigen::Matrix<double, 3,3> I_i;
     extern const Eigen::Vector3d Xgp;
     extern const Eigen::Vector3d Xgb;

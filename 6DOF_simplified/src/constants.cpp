@@ -25,7 +25,8 @@ namespace constants
     extern const double Sp {0.5};
     extern const double Kc {1000000.0};
     extern const double Cc {0.5};
-    extern const Eigen::Matrix<double, 3,3> I_i {(Ip()+Ib()).inverse()};
+    extern const Eigen::Matrix<double, 3, 3> I {Ip()+Ib()};
+    extern const Eigen::Matrix<double, 3,3> I_i {I.inverse()};
     extern const Eigen::Vector3d Xgp {-1.3, 0.0, -7.4};
     extern const Eigen::Vector3d Xgb {0, 0, 0.66};
     // Aerodynamic coefficients
