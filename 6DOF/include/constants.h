@@ -39,6 +39,7 @@ namespace constants
     extern const Eigen::Matrix<double, 3, 3> A3;
     extern const Eigen::Matrix<double, 3, 3> A4;
     extern const Eigen::Matrix<double, 6, 6> A;
+    extern const Eigen::Matrix<double, 6, 6> Ai;
 
     // Aerodynamic coefficient
     extern const double CL0;

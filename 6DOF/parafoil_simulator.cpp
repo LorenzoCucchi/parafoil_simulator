@@ -16,7 +16,6 @@ using namespace Eigen;
 using namespace constants;
 
 typedef Matrix<double, 13, 1> state_type;
-typedef Matrix<double, 6, 6> state_matrix;
 
 
 void my_system(const state_type &x, state_type &dxdt, const double t){
@@ -49,7 +48,8 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
    
     dxdt.block<3,1>(0,0) = T.transpose()*vel_c;
     dxdt.block<4,1>(3,0) = 0.5*Omega(vel_rot)*quat.normalized();
-    dxdt.block<6,1>(7,0) = A.householderQr().solve((B));
+    //dxdt.block<6,1>(7,0) = A.colPivHouseholderQr().solve((B));
+    dxdt.block<6,1>(7,0) = Ai*B;
     
 }
 

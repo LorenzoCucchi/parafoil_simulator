@@ -40,6 +40,7 @@ namespace constants
     extern const Eigen::Matrix<double, 3, 3> A3 {Rgp*Mf};
     extern const Eigen::Matrix<double, 3, 3> A4 {I+If};
     extern const Eigen::Matrix<double, 6, 6> A {PopA(A1,A2,A3,A4)};
+    extern const Eigen::Matrix<double, 6, 6> Ai {A.inverse()};
 
     // Aerodynamic coefficients
     extern const double CL0 { 0.4};
