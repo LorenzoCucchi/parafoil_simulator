@@ -1,6 +1,7 @@
 #include "constants.h"
 #include <Eigen/Dense>
 #include "forces.h"
+#include "tools.h"
 
 using namespace Eigen;
 
@@ -29,6 +30,9 @@ namespace constants
     extern const Eigen::Matrix<double, 3,3> I_i {I.inverse()};
     extern const Eigen::Vector3d Xgp {-1.3, 0.0, -7.4};
     extern const Eigen::Vector3d Xgb {0, 0, 0.66};
+    extern const Eigen::Matrix<double, 3, 3> Rgp {Omrot(Xgp)};
+    extern const Eigen::Matrix<double, 3, 3> Rgb {Omrot(Xgb)};
+
     // Aerodynamic coefficients
     extern const double CL0 { 0.4};
     extern const double CLa { 2.0};

@@ -29,12 +29,10 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     euler = QuatToEuler(quat);
     vel_rot_eul = Wrot(euler)*vel_rot;
 
-    Matrix3d Sk_Om, Rgp, Rgb, T;
+    Matrix3d Sk_Om, T;
     T = QuatToAtt(quat);
     Sk_Om = Omrot(vel_rot);
-    Rgp = Omrot(Xgp);
-    Rgb = Omrot(Xgb);
-    
+    vel_c = vel_c - T*Wind();
     vel_b = vel_c+Sk_Om*Xgb;
     vel_p = vel_c+Sk_Om*Xgp;
     vecg << 0, 0, 1;
@@ -58,7 +56,8 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
 int main(){
 
 Vector3d euler;
-euler << 0.002,0.0,0.0001;
+euler << 0.0,0.0,0.0;
+
 
 state_type x;
     
@@ -85,7 +84,7 @@ Vector3d eul;
 
 auto start = high_resolution_clock::now();
 runge_kutta4<state_type> stepper;
-    while (z_land>=z_ref) {
+    while (z_ref<=z_land) {
         t += dt;
         stepper.do_step(my_system, x, t, dt);
         x_c.push_back(x(0));

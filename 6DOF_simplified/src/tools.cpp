@@ -1,4 +1,5 @@
 #include "tools.h"
+#include <cmath>
 #include <Eigen/Dense>
 
 using namespace std;
@@ -67,10 +68,16 @@ Matrix<double, 4, 4> Omega(Vector3d vel){
 Matrix<double, 4, 1> EulToQuat(Vector3d vec){
     Matrix<double, 4, 1> quat;
     vec = vec/2;
-    quat(0) = cos(vec(0))*cos(vec(1))*cos(vec(2))+sin(vec(0))*sin(vec(1))*sin(vec(2));
-    quat(1) = sin(vec(0))*cos(vec(1))*cos(vec(2))-cos(vec(0))*sin(vec(1))*sin(vec(2));
-    quat(2) = cos(vec(0))*sin(vec(1))*cos(vec(2))+sin(vec(0))*cos(vec(1))*sin(vec(2));
-    quat(3) = cos(vec(0))*cos(vec(1))*sin(vec(2))-sin(vec(0))*sin(vec(1))*cos(vec(2));
+    quat(3) = cos(vec(0))*cos(vec(1))*cos(vec(2))-sin(vec(0))*sin(vec(1))*sin(vec(2));
+    quat(0) = sin(vec(0))*cos(vec(1))*cos(vec(2))+cos(vec(0))*sin(vec(1))*sin(vec(2));
+    quat(1) = cos(vec(0))*sin(vec(1))*cos(vec(2))+sin(vec(0))*cos(vec(1))*sin(vec(2));
+    quat(2) = cos(vec(0))*cos(vec(1))*sin(vec(2))-sin(vec(0))*sin(vec(1))*cos(vec(2));
 
     return quat;
+}
+
+Vector3d Wind(){
+    Vector3d w;
+    w << 3, 2, 0;
+    return w;
 }

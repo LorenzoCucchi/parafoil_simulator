@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include "forces.h"
+#include "tools.h"
 
 namespace constants
 {
@@ -25,9 +26,11 @@ namespace constants
     extern const double Kc;
     extern const double Cc; 
     extern const Eigen::Matrix<double, 3, 3> I;
-    extern const Eigen::Matrix<double, 3,3> I_i;
+    extern const Eigen::Matrix<double, 3, 3> I_i;
     extern const Eigen::Vector3d Xgp;
     extern const Eigen::Vector3d Xgb;
+    extern const Eigen::Matrix<double, 3, 3> Rgp;
+    extern const Eigen::Matrix<double, 3, 3> Rgb;
 
     // Aerodynamic coefficient
     extern const double CL0;
