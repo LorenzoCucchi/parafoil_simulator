@@ -1,3 +1,0 @@
-/home/lorenzo/Documents/CPP/PARAFOIL/parafoil_simulator/6DOF_simplified/CMakeFiles/main.dir
-/home/lorenzo/Documents/CPP/PARAFOIL/parafoil_simulator/6DOF_simplified/CMakeFiles/edit_cache.dir
-/home/lorenzo/Documents/CPP/PARAFOIL/parafoil_simulator/6DOF_simplified/CMakeFiles/rebuild_cache.dir
