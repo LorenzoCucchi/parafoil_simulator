@@ -1,10 +1,10 @@
 parafroma.pdf
 main
 example-multiplot.pdf
-.vscode/settings.json
-.vscode/c_cpp_properties.json
 6DOF_simplifed/CMakeFiles/
 *.ninja_deps
 *.ninja_log
 *.ninja
 *.cmake
+.vscode/settings.json
+.vscode/c_cpp_properties.json
