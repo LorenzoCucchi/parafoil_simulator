@@ -4,7 +4,7 @@
 using namespace std;
 using namespace sciplot;
 
-int plot_flight(vector<double> x, vector<double> y, vector<double> z, vector<double> vx, vector<double> vy, vector<double> vz, vector<double> t)
+int plot_flight(vector<double> x, vector<double> y, vector<double> z, vector<double> r_x,vector<double> r_y,vector<double> r_z,vector<double> vx, vector<double> vy, vector<double> vz, vector<double> t)
 {
     Plot2D plot0;
     plot0.xlabel("x [m]");
@@ -13,8 +13,10 @@ int plot_flight(vector<double> x, vector<double> y, vector<double> z, vector<dou
 
     Plot2D plot1;
     plot1.xlabel("t [s]");
-    plot1.ylabel("th [degree]");
-    plot1.drawCurve(t, vx).label("vx");
+    plot1.ylabel("v_x[m/s]");
+    plot1.drawCurve(t, r_x).label("r_x");
+    plot1.drawCurve(t, r_y).label("r_y");
+    plot1.drawCurve(t, r_z).label("r_z");
 
     Plot2D plot2;
     plot2.xlabel("t [s]");
@@ -24,9 +26,9 @@ int plot_flight(vector<double> x, vector<double> y, vector<double> z, vector<dou
     plot2.drawCurve(t, vz).label("vz");
 
     Plot2D plot3;
-    plot3.xlabel("t [s]");
-    plot3.ylabel("q [degree]");
-    plot3.drawCurve(t, vz).label("vz");
+    plot3.xlabel("x [m]");
+    plot3.ylabel("y [m]");
+    plot3.drawCurve(x, y).label("trajectory");
 
     // Use the previous plots as sub-figures in a larger 2x2 figure.
     Figure fig = {{plot0, plot1},

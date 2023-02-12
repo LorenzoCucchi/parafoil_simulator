@@ -20,7 +20,7 @@ Vector3d Fa_b(Vector3d vec)
 double CD_b(Vector3d vec)
 {
     double alpha = atan2(vec(2), vec(0));
-    if (alpha >= (12.0*pi/180.0))  alpha = (12.0*pi/180.0);
+    //if (alpha >= (12.0*pi/180.0))  alpha = (12.0*pi/180.0);
     double cd = CD0 + CDa * pow(alpha, 2);
     return cd;
 }
@@ -48,7 +48,7 @@ Vector3d Fa_w(Vector3d vec)
 double CL_w(Vector3d vec)
 {
     double alpha = atan2(vec(2), vec(0));
-    if (alpha >= (12.0*pi/180.0))  alpha = (12.0*pi/180.0);
+    //if (alpha >= (12.0*pi/180.0))  alpha = (12.0*pi/180.0);
     double cl = CL0 + CLa * alpha;
     return cl;
 }
@@ -68,7 +68,7 @@ Vector3d Ma_w(Vector3d vel, Vector3d w, Vector3d rot){
     double q = 0.5*rho*Sw*vel.squaredNorm();
     Vector3d m;
     m(0) = q*(Clp*pow(b,2)*w(0)/(2*vel.norm()) + Clphi*b*rot(0));
-    m(1) = q*(Clp*pow(c,2)*w(1)/(2*vel.norm()) + Cm0*c + Cma*c*atan2(vel(2), vel(0)));
+    m(1) = q*(Cmq*pow(c,2)*w(1)/(2*vel.norm()) + Cm0*c + Cma*c*atan2(vel(2), vel(0)));
     m(2) = q*(Cnr*pow(b,2)*w(2)/(2*vel.norm()));
     return m;
 }
@@ -119,7 +119,7 @@ Matrix32d SFa(Vector3d vec, double delta){
     F(1,0) = q*(-CDda*vec(1)*sign);
     F(1,1) = q*(-CDds*vec(1));
     F(2,0) = q*(-CLda*vec(0)-CDda*vec(2))*sign;
-    F(2,1) = q*(-CLda*vec(0)-CDda*vec(2));
+    F(2,1) = q*(-CLds*vec(0)-CDds*vec(2));
     return F;
 }
 
@@ -128,13 +128,13 @@ Matrix32d SMa(Vector3d vec, double delta){
     if (delta >= 0.0)  sign = 1; 
     else delta = -1; 
 
-    double q = 0.5*rho*Sw*vec.squaredNorm();
+    double q = 0.5*rho*Sw*vec.squaredNorm()*b/t;
     Matrix32d M;
-    M(0,0) = q*(CLda*vec(2)-CDda*vec(0))*sign;
+    M(0,0) = q*Clda;
     M(0,1) = 0.0;
     M(1,0) = 0.0;
     M(1,1) = 0.0;
-    M(2,0) = q*(-CLda*vec(0)-CDda*vec(2))*sign;
+    M(2,0) = q*Cnda;
     M(2,1) = 0.0;
 
     return M;
