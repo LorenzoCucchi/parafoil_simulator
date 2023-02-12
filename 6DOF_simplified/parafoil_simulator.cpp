@@ -19,7 +19,7 @@ using namespace constants;
 typedef Matrix<double, 13, 1> state_type;
 
 void my_system(const state_type &x, state_type &dxdt, const double t){
-    Vector3d pos_c, vel_c, vel_rot, vel_rot_eul, vel_b, vel_p, euler, vecg;
+    Vector3d pos_c, vel_c, vel_rot, vel_rot_eul, vel_b, vel_p, euler, Vw;
     Matrix<double, 4, 1> quat;
     pos_c << x(0), x(1), x(2);
     quat << x(3), x(4), x(5), x(6);
@@ -32,10 +32,9 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     Matrix3d Sk_Om, T;
     T = QuatToAtt(quat);
     Sk_Om = Omrot(vel_rot);
-    vel_c = vel_c - T*Wind();
-    vel_b = vel_c+Sk_Om*Xgb;
-    vel_p = vel_c+Sk_Om*Xgp;
-    vecg << 0, 0, 1;
+    Vw = vel_c - T*Wind();
+    vel_b = Vw + Sk_Om*Xgb;
+    vel_p = Vw + Sk_Om*Xgp;
     Vector2d sig;
     sig.setZero();
     if (t>=10 && t<1000) {sig << 30.0*pi/180, 0.0*pi/180;}

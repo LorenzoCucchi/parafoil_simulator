@@ -78,6 +78,6 @@ Matrix<double, 4, 1> EulToQuat(Vector3d vec){
 
 Vector3d Wind(){
     Vector3d w;
-    w << 3, 2, 0;
+    w << 0, 0, 0;
     return w;
 }
