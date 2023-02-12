@@ -37,7 +37,9 @@ void my_system(const state_type &x, state_type &dxdt, const double t){
     vel_p = Vw + Sk_Om*Xgp;
     Vector2d sig;
     sig.setZero();
-    if (t>=10 && t<1000) {sig << 30.0*pi/180, 0.0*pi/180;}
+    if (t>=10 && t<1000) {sig << 20.0*pi/180, 0.0*pi/180;}
+    if (sig(0)>sig(1)) {sig(0)=sig(0)-sig(1);}
+    else {sig(1)=sig(0); sig(0)=sig(0)-sig(1);}
 
     Matrix<double, 6, 1> B,Sd;
     B.block<3,1>(0,0) =  Fa_w(vel_p)+ Fa_b(vel_b) + W_w(euler)+W_b(euler) - (Mpay+Mpar)*vel_rot.cross(vel_c)  + SFa(vel_p,sig(0))*sig;
