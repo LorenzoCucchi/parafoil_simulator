@@ -3,3 +3,9 @@ main
 example-multiplot.pdf
 .vscode/settings.json
 .vscode/c_cpp_properties.json
+./6DOF_simplifed/CmakeFiles
+.ninja_deps
+.ninja_log
+build.ninja
+cmake_install.cmake
+CMakeCache.txt
