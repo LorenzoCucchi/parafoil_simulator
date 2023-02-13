@@ -1,5 +1,5 @@
 #include "constants.h"
-#include <Eigen/Dense>
+#include <C:\Program Files\eigen-3.4.0\Eigen\Dense>
 #include "forces.h"
 #include "tools.h"
 
@@ -20,7 +20,7 @@ namespace constants
     extern const double zb {0.5};
     extern const double b { 7};
     extern const double c { 3};
-    extern const double t { 0.3};
+    extern const double thick { 0.3};
     extern const double a { 0.8};
     extern const double Sw {21.0};
     extern const double Sp {0.5};

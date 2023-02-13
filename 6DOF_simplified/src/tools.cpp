@@ -1,11 +1,11 @@
 #include "tools.h"
 #include <cmath>
-#include <Eigen/Dense>
+#include <C:\Program Files\eigen-3.4.0\Eigen\Dense>
 
 using namespace std;
 using namespace Eigen;
 
-Matrix3d Trot(Vector3d vec){
+[[maybe_unused]] Matrix3d Trot(Vector3d vec){
     Matrix3d Mat;
     Mat.row(0) << cos(vec(1))*cos(vec(2)), cos(vec(1))*sin(vec(2)), -sin(vec(1));
     Mat(1,0) = sin(vec(0))*sin(vec(1))*cos(vec(2)) - cos(vec(0))*sin(vec(2));
