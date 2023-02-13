@@ -7,7 +7,7 @@ void we(vector<double> time, vector<double> vx, vector<double> vy)
     Matrix<double, 2000, 2> V;
     for (int i=0; i<time.size(); i++) {
 
-        if (time[i] >= 20.0) {
+        if (time[i] >= 20.0 && time.size()>(i+2000)) {
             V.setZero();
             for (int j = 0; j < 1999;) {
                 V.block<1, 1>(j, 0) << vx[j + i];
@@ -41,5 +41,38 @@ void we_calc(Matrix<double, 2000, 2> V)
     b = 0.5*(V2.array()-V2_mean);
     Vector2d W = (A.transpose()*A).inverse()*(A.transpose()*b);
     cout<< "Velocita' X:: "<<W(0)<<"  Velocita' Y:: "<<W(1)<< endl;
+
+}
+
+void WindEstimation(vector<double> time, vector<double> gpsN, vector<double> gpsE)
+{
+    Eigen::Vector2d phi, wind;
+    wind.setZero();
+    Eigen::Matrix<double, 1, 2> phiT;
+    Eigen::Matrix<double, 2, 2> funv;
+    funv.col(0) << 1.0, 0.0;
+    funv.col(1) << 0.0, 1.0;
+    Eigen::Vector2d temp;
+    int nSample=0;
+    double vx, vy, v2, y;
+
+    for (int i=0; i<time.size(); i++) {
+
+        if (time[i] >= 20.0) {
+            nSample++;
+            vx = (vx * nSample + gpsN[i]) / (nSample + 1);
+            vy = (vy * nSample + gpsE[i]) / (nSample + 1);
+            v2 = (v2 * nSample + (gpsN[i] * gpsN[i] + gpsE[i] * gpsE[i])) / (nSample + 1);
+            phi(0) = gpsN[i] - vx;
+            phi(1) = gpsE[i] - vy;
+            y = 0.5f * ((gpsN[i] * gpsN[i] + gpsE[i] * gpsE[i]) - v2);
+
+            phiT = phi.transpose();
+            funv = (funv - (funv * phi * phiT * funv) / (1 + (phiT * funv * phi)));
+            temp = (0.5 * (funv + funv.transpose()) * phi) * (y - phiT * wind);
+            wind = wind + temp;
+        }
+    }
+    cout<< "Velocita' X:: "<<wind(0)<<"  Velocita' Y:: "<<wind(1)<< endl;
 
 }

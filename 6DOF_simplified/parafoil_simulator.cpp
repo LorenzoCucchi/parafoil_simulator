@@ -108,6 +108,8 @@ int main() {
     auto duration = duration_cast<milliseconds>(stop - start);
     cout << duration.count() << endl;
 
+    WindEstimation(t_s, v_x, v_y);
+
     fstream file;
     file.open("simulation_results.txt", ios_base::out );
     for (int i = 0; i<t_s.size(); i++)
@@ -116,7 +118,7 @@ int main() {
     }
     file.close();
 
-    we(t_s, v_x, v_y, dt);
+
 
     return 0;
 

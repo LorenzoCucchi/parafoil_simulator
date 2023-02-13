@@ -2,6 +2,7 @@
 #define TOOLS_H
 
 #include <cmath>
+#include<stdlib.h>
 #include <C:\Program Files\eigen-3.4.0\Eigen\Dense>
 
 using namespace std;

@@ -1,5 +1,6 @@
 #include "tools.h"
 #include <cmath>
+#include<stdlib.h>
 #include <C:\Program Files\eigen-3.4.0\Eigen\Dense>
 
 using namespace std;
@@ -78,6 +79,10 @@ Matrix<double, 4, 1> EulToQuat(Vector3d vec){
 
 Vector3d Wind(){
     Vector3d w;
-    w << 3, -2, 0;
+    srand((unsigned) time(nullptr));
+    w << -3, -2, 0;
+    w(0) = w(0) + (rand()%5)/10.0;
+    w(1) = w(1) + (rand()%5)/10.0;
+
     return w;
 }
