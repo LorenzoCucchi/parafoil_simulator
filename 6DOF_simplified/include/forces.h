@@ -2,7 +2,6 @@
 #define FORCES_H
 
 #include <C:\Program Files\eigen-3.4.0\Eigen\Dense>
-#include "constants.h"
 #include <iostream>
 
 using namespace std;

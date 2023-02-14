@@ -6,7 +6,7 @@
 using namespace std;
 using namespace Eigen;
 
-[[maybe_unused]] Matrix3d Trot(Vector3d vec){
+[[maybe_unused]] Matrix3d Trot(const Vector3d& vec){
     Matrix3d Mat;
     Mat.row(0) << cos(vec(1))*cos(vec(2)), cos(vec(1))*sin(vec(2)), -sin(vec(1));
     Mat(1,0) = sin(vec(0))*sin(vec(1))*cos(vec(2)) - cos(vec(0))*sin(vec(2));
@@ -18,13 +18,13 @@ using namespace Eigen;
     return Mat;
 }
 
-Matrix3d Omrot(Vector3d vec){
+Matrix3d Omrot(const Vector3d& vec){
     Matrix3d Mat;
     Mat << 0.0, -vec(2), vec(1), vec(2), 0.0, -vec(0), -vec(1), vec(0), 0.0;
     return Mat;
 }
 
-Matrix3d Wrot(Vector3d vec){
+Matrix3d Wrot(const Vector3d& vec){
     Matrix3d Mat;
     Mat.row(0) << 1.0, sin(vec(0))*tan(vec(1)), cos(vec(0))*tan(vec(1));
     Mat.row(1) << 0.0, cos(vec(0)), -sin(vec(0));
@@ -33,12 +33,12 @@ Matrix3d Wrot(Vector3d vec){
 }
 
 
-Matrix3d QuatToAtt(Matrix<double, 4, 1> quat){
-    quat = quat.normalized();
+Matrix3d QuatToAtt(const Matrix<double, 4, 1>& q){
+    Matrix<double,4 ,1 > quat = q.normalized();
     Vector3d qv;
     qv = quat.block<3, 1>(0, 0);
     Matrix<double, 3, 3> rox;
-    MatrixXd eye = Matrix<double, 3, 3>::Identity();
+    Matrix<double,3,3> eye = Matrix<double, 3, 3>::Identity();
     rox << 0, -qv(2), qv(1), 
         qv(2), 0, -qv(0), 
         -qv(1), qv(0), 0;
@@ -47,8 +47,9 @@ Matrix3d QuatToAtt(Matrix<double, 4, 1> quat){
 }
 
 
-Vector3d QuatToEuler(Matrix<double, 4, 1> quat){
-    quat = quat.normalized();
+Vector3d QuatToEuler(const Matrix<double, 4, 1>& q){
+
+    Matrix<double,4 ,1 > quat = q.normalized();
     Vector3d euler;
     euler(0) = atan2((2*quat(0)*quat(3)+2*quat(1)*quat(2)),(-pow(quat(0),2)-pow(quat(1),2)+pow(quat(2),2)+pow(quat(3),2)));
     euler(1) = -asin(2*quat(0)*quat(2)-2*quat(1)*quat(3));
@@ -57,7 +58,7 @@ Vector3d QuatToEuler(Matrix<double, 4, 1> quat){
     return euler;
 }
 
-Matrix<double, 4, 4> Omega(Vector3d vel){
+Matrix<double, 4, 4> Omega(const Vector3d& vel){
     Matrix<double, 4,4> Om;
     Om <<          0,  vel(2), -vel(1), vel(0),
             -vel(2),           0,  vel(0), vel(1),
@@ -66,9 +67,9 @@ Matrix<double, 4, 4> Omega(Vector3d vel){
     return Om;
 }
 
-Matrix<double, 4, 1> EulToQuat(Vector3d vec){
+Matrix<double, 4, 1> EulToQuat(const Vector3d& v){
     Matrix<double, 4, 1> quat;
-    vec = vec/2;
+    Vector3d vec = v/2;
     quat(3) = cos(vec(0))*cos(vec(1))*cos(vec(2))-sin(vec(0))*sin(vec(1))*sin(vec(2));
     quat(0) = sin(vec(0))*cos(vec(1))*cos(vec(2))+cos(vec(0))*sin(vec(1))*sin(vec(2));
     quat(1) = cos(vec(0))*sin(vec(1))*cos(vec(2))+sin(vec(0))*cos(vec(1))*sin(vec(2));
@@ -79,10 +80,10 @@ Matrix<double, 4, 1> EulToQuat(Vector3d vec){
 
 Vector3d Wind(){
     Vector3d w;
-    srand((unsigned) time(nullptr));
+    //srand((unsigned) time(nullptr));
     w << -3, -2, 0;
-    w(0) = w(0) + (rand()%5)/10.0;
-    w(1) = w(1) + (rand()%5)/10.0;
+    //w(0) = w(0) + (rand()%5)/10.0;
+    //w(1) = w(1) + (rand()%5)/10.0;
 
     return w;
 }

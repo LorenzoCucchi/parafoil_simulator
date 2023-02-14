@@ -42,13 +42,15 @@ void my_system(const state_type &x, state_type &dxdt, const double t) {
         sig(0) = sig(0) - sig(1);
     }
 
-    
+    Vector3d Fa = Fa_w(vel_p);
+    Vector3d Fb = Fa_b(vel_b);
+    Matrix<double, 3, 2> Sfa = SFa(vel_p, sig(0));
     dxdt.block<3, 1>(0, 0) = T.transpose() * vel_c;
     dxdt.block<4, 1>(3, 0) = 0.5 * Omega(vel_rot) * quat.normalized();
-    dxdt.block<3, 1>(7, 0) = 1 / (Mpar + Mpay) * (Fa_w(vel_p) + Fa_b(vel_b) + W_w(euler) + W_b(euler) -
-                                                  (Mpay + Mpar) * vel_rot.cross(vel_c) + SFa(vel_p, sig(0)) * sig);
-    dxdt.block<3, 1>(10, 0) = I_i * (Ma_w(vel_p, vel_rot_eul, euler) + Rgp * Fa_w(vel_p) + Rgb * Fa_b(vel_b) -
-                                     Sk_Om * I * vel_rot + (SMa(vel_p) + Rgp * SFa(vel_p, sig(0))) * sig);
+    dxdt.block<3, 1>(7, 0) = IMtot * (Fa + Fb + W_w(euler) + W_b(euler) -
+                                                  Mtot * vel_rot.cross(vel_c) + Sfa * sig);
+    dxdt.block<3, 1>(10, 0) = I_i * (Ma_w(vel_p, vel_rot_eul, euler) + Rgp * Fa + Rgb * Fb -
+                                     Sk_Om * I * vel_rot + (SMa(vel_p) + Rgp * Sfa) * sig);
   
 }
 
@@ -74,8 +76,6 @@ int main() {
     double z_land = 0.0;
     double z_ref = x(2);
 
-    cout << "Insert final time\n" << endl;
-    cin >> tf;
 
     Matrix<double, 4, 1> quat;
     Vector3d eul,vel;
@@ -105,20 +105,21 @@ int main() {
 
 
     auto stop = high_resolution_clock::now();  
-    auto duration = duration_cast<milliseconds>(stop - start);
+    auto duration = duration_cast<microseconds>(stop - start);
     cout << duration.count() << endl;
 
     WindEstimation(t_s, v_x, v_y);
 
-    fstream file;
-    file.open("simulation_results.txt", ios_base::out );
-    for (int i = 0; i<t_s.size(); i++)
-    {
-        file<< t_s[i] << " " << x_c[i] << " " << y_c[i] << " " << z_c[i] << " " << r_x[i] << " " << r_y[i] << " " << r_z[i] << " " << v_x[i] << " " << v_y[i] << " " << v_z[i] << endl;
-    }
-    file.close();
+    //fstream file;
+    //file.open("simulation_results.txt", ios_base::out );
+    //for (int i = 0; i<t_s.size(); i++)
+    //{
+    //    file<< t_s[i] << " " << x_c[i] << " " << y_c[i] << " " << z_c[i] << " " << r_x[i] << " " << r_y[i] << " " << r_z[i] << " " << v_x[i] << " " << v_y[i] << " " << v_z[i] << endl;
+    //}
+    //file.close();
 
-
+//
+//
 
     return 0;
 

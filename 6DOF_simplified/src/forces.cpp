@@ -112,7 +112,7 @@ Matrix3d IF()
 Matrix32d SFa(const Vector3d& vec, double delta){
 
     double sign;
-    if (delta >= 0.0)  sign = 1; 
+    if (delta >= 0.0)  sign = 1;
     else sign = -1;
 
     double q = 0.5*rho*Sw*vec.norm();

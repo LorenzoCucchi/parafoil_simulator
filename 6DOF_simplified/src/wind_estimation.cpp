@@ -73,6 +73,6 @@ void WindEstimation(vector<double> time, vector<double> gpsN, vector<double> gps
             wind = wind + temp;
         }
     }
-    cout<< "Velocita' X:: "<<wind(0)<<"  Velocita' Y:: "<<wind(1)<< endl;
+    //cout<< "Velocita' X:: "<<wind(0)<<"  Velocita' Y:: "<<wind(1)<< endl;
 
 }
