@@ -70,11 +70,14 @@ Matrix<double, 4, 4> Omega(const Vector3d& vel){
 Matrix<double, 4, 1> EulToQuat(const Vector3d& v){
     Matrix<double, 4, 1> quat;
     Vector3d vec = v/2;
-    quat(3) = cos(vec(0))*cos(vec(1))*cos(vec(2))-sin(vec(0))*sin(vec(1))*sin(vec(2));
-    quat(0) = sin(vec(0))*cos(vec(1))*cos(vec(2))+cos(vec(0))*sin(vec(1))*sin(vec(2));
-    quat(1) = cos(vec(0))*sin(vec(1))*cos(vec(2))+sin(vec(0))*cos(vec(1))*sin(vec(2));
-    quat(2) = cos(vec(0))*cos(vec(1))*sin(vec(2))-sin(vec(0))*sin(vec(1))*cos(vec(2));
+    double c0 = cos(vec(0)), s0 = sin(vec(0));
+    double c1 = cos(vec(1)), s1 = sin(vec(1));
+    double c2 = cos(vec(2)), s2 = sin(vec(2));
 
+    quat(3) = c0*c1*c2-s0*s1*s2;
+    quat(0) = s0*c1*c2+c0*s1*s2;
+    quat(1) = c0*s1*c2+s0*c1*s2;
+    quat(2) = c0*c1*s2-s0*s1*c2;
     return quat;
 }
 

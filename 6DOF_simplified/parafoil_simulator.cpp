@@ -61,7 +61,7 @@ int main() {
 
     state_type x;
 
-    x.block<3, 1>(0, 0) << 0, 0, -400;
+    x.block<3, 1>(0, 0) << 0, 0, -800;
     x.block<4, 1>(3, 0) = EulToQuat(euler);
     x.block<3, 1>(7, 0) << 13, 0, 2;
     x.block<3, 1>(10, 0) << 0, 0, 0;
@@ -110,17 +110,14 @@ int main() {
 
     WindEstimation(t_s, v_x, v_y);
 
-    //fstream file;
-    //file.open("simulation_results.txt", ios_base::out );
-    //for (int i = 0; i<t_s.size(); i++)
-    //{
-    //    file<< t_s[i] << " " << x_c[i] << " " << y_c[i] << " " << z_c[i] << " " << r_x[i] << " " << r_y[i] << " " << r_z[i] << " " << v_x[i] << " " << v_y[i] << " " << v_z[i] << endl;
-    //}
-    //file.close();
+    fstream file;
+    file.open("simulation_results.txt", ios_base::out );
+    for (int i = 0; i<t_s.size(); i++)
+    {
+        file<< t_s[i] << " " << x_c[i] << " " << y_c[i] << " " << z_c[i] << " " << r_x[i] << " " << r_y[i] << " " << r_z[i] << " " << v_x[i] << " " << v_y[i] << " " << v_z[i] << endl;
+    }
+    file.close();
 
-//
-//
 
     return 0;
-
 }
