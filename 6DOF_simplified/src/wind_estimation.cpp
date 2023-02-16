@@ -1,6 +1,20 @@
 #include <C:\Program Files\eigen-3.4.0\Eigen\Dense>
+#include <iostream>
 #include "constants.h"
 #include "wind_estimation.h"
+
+using namespace std;
+using namespace Eigen;
+
+Vector3f Wind(){
+    Vector3f w;
+    //srand((unsigned) time(nullptr));
+    w << 0, 0, 0;
+    //w(0) = w(0) + (rand()%5)/10.0;
+    //w(1) = w(1) + (rand()%5)/10.0;
+
+    return w;
+}
 
 void we(vector<double> time, vector<double> vx, vector<double> vy)
 {
