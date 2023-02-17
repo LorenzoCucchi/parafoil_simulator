@@ -28,7 +28,7 @@ def read_data(file_path):
             u.append(float(data[10]))
     return t, x, y, z, rx, ry, rz, vx, vy, vz, u;
 
-file_path = "cmake-build-release/simulation_control_results.txt"
+file_path = "cmake-build-release/simulation_results.txt"
 t, x, y, z, rx, ry, rz, vx, vy, vz, u = read_data(file_path)
 
 

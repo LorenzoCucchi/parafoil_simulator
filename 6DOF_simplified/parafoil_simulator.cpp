@@ -7,7 +7,13 @@ int main() {
 
     Parafoil prova("data.json");
 
-    prova.simulate_control();
+    if (prova.boolControl == 1){
+        prova.simulate_control();
+    }
+    else {
+        prova.simulate();
+    }
 
     return 0;
 }
+

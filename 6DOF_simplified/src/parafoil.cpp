@@ -65,6 +65,7 @@ Parafoil::Parafoil(const string& path){
     Parafoil::Clda  = aer["Clda"];
     Parafoil::Cnda  = aer["Cnda"];
     //Simulation setup
+    Parafoil::boolControl = sim["Control"];
     Parafoil::dt = sim["Step Time"];
     Parafoil::fin_alt = sim["Final Altitude"];
     state_type x;
@@ -78,6 +79,8 @@ Parafoil::Parafoil(const string& path){
     Parafoil::initial_state =  x;
     Parafoil::wind << sim["Wind Speed"].at(0), sim["Wind Speed"].at(1),sim["Wind Speed"].at(2);
     Parafoil::target << sim["Target"].at(0), sim["Target"].at(1);
+    Parafoil::Kp = sim["Kp"];
+    Parafoil::Ki = sim["Ki"];
 }
 
 
@@ -266,7 +269,7 @@ void Parafoil::my_system(const state_type &x, state_type &dxdt, const double t) 
     Vector3d vel_p = Vw + Sk_Om * xgp;
     Vector2d sig {x(13), x(14)};
 
-    sig = sig;
+    sig = sig*2;
 
     Vector3d Fa = Fa_w(vel_p);
     Vector3d Fb = Fa_b(vel_b);
@@ -342,7 +345,7 @@ void Parafoil::simulate_control(){
     double t0 = 0.0;
     double t = t0;
 
-    vector<double> x_c, y_c, z_c, v_x, v_y, v_z, t_s, r_x, r_y, r_z, u_s;
+    vector<double> x_c, y_c, z_c, v_x, v_y, v_z, t_s, r_x, r_y, r_z, u_s, e_s;
     double z_land = 0.0;
     double z_ref = initial_state(2);
     double errore = 0.0;
@@ -380,13 +383,13 @@ void Parafoil::simulate_control(){
             v_z.push_back(vel(2));
             t_s.push_back(tin+t);
             u_s.push_back(x(13));
+            e_s.push_back(errore);
         }
         t += pid.dt;
         errore = pid.GuidanceSys(target, x.block<2,1>(0,0), eul(2));
-        cout << "Errore: "<< errore << endl;
-        u = pid.PI(errore,7,1);
+        u = pid.PI(errore,Kp,Ki);
         u = pid.Saturation(u);
-        cout << "u: "<< u << endl;
+
         x(13) = u;
         x(14) = 0;
 
@@ -398,7 +401,7 @@ void Parafoil::simulate_control(){
     cout << duration.count() << endl;
 
     fstream file;
-    file.open("simulation_control_results.txt", ios_base::out );
+    file.open("simulation_results.txt", ios_base::out );
     for (int i = 0; i<t_s.size(); i++)
     {
         file<< t_s[i] << " " << x_c[i] << " " << y_c[i] << " " << z_c[i] << " " << r_x[i] << " " << r_y[i] << " " << r_z[i] << " " << v_x[i] << " " << v_y[i] << " " << v_z[i] <<" "<< u_s[i]<< endl;

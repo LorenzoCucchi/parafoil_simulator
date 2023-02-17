@@ -55,6 +55,8 @@ public:
 
     void simulate_control();
 
+    int boolControl;
+
 private:
     double mpay;
     double mpar;
@@ -94,6 +96,8 @@ private:
     double fin_alt;
     Vector3d wind;
     Vector2d target;
+    double Kp;
+    double Ki;
 
 };
 
