@@ -6,6 +6,7 @@
 #include "wind_estimation.h"
 #include <fstream>
 #include <functional>
+#include "pid.h"
 
 using namespace std;
 using namespace boost::numeric::odeint;
@@ -13,7 +14,7 @@ using namespace Eigen;
 using namespace constants;
 using json = nlohmann::json;
 
-typedef Matrix<float, 13, 1> state_type;
+typedef Matrix<double, 15, 1> state_type;
 
 Parafoil::Parafoil(const string& path){
     std::ifstream f(path);
@@ -28,15 +29,15 @@ Parafoil::Parafoil(const string& path){
     Parafoil::xb   = pay["Diameter"];
     Parafoil::zb   = pay["Length"];
     Parafoil::sp   = pay["Area"];
-    float distb   = pay["Distance"];
+    double distb   = pay["Distance"];
     //Parafoil
     Parafoil::mpar = par["Mass"];
     Parafoil::b    = par["Span"];
     Parafoil::c    = par["Chord"];
     Parafoil::th   = par["Thickness"];
     Parafoil::a    = par["Height"];
-    float distp = par["Distance"];
-    float cant = par["Cant"];
+    double distp = par["Distance"];
+    double cant = par["Cant"];
     //Calculation to setup data
     Parafoil::sw   = Parafoil::b * Parafoil::c;
     Parafoil::mtot = Parafoil::mpay + Parafoil::mpar;
@@ -46,7 +47,6 @@ Parafoil::Parafoil(const string& path){
     Parafoil::inv_inertia = Inertia_calc();
     Parafoil::rgp = Omrot(Parafoil::xgp);
     Parafoil::rgb = Omrot(Parafoil::xgb);
-    cout<<xgp<<endl<<xgb<<endl;
     //Aerodynamics Data
     Parafoil::CL0   = aer["CL0"];
     Parafoil::CLa   = aer["CLa"];
@@ -68,14 +68,16 @@ Parafoil::Parafoil(const string& path){
     Parafoil::dt = sim["Step Time"];
     Parafoil::fin_alt = sim["Final Altitude"];
     state_type x;
-    Vector3f eul;
+    Vector3d eul;
     eul << sim["Attitude"].at(0), sim["Attitude"].at(1),sim["Attitude"].at(2);
     x.block<3, 1>(0, 0) <<  sim["Position"].at(0), sim["Position"].at(1),sim["Position"].at(2) ;
     x.block<4, 1>(3, 0) = EulToQuat(eul);
     x.block<3, 1>(7, 0) << sim["Speed"].at(0), sim["Speed"].at(1),sim["Speed"].at(2);
     x.block<3, 1>(10, 0) << sim["Angular Velocities"].at(0), sim["Angular Velocities"].at(1),sim["Angular Velocities"].at(2);
+    x.block<2, 1>(13, 0).setZero();
     Parafoil::initial_state =  x;
     Parafoil::wind << sim["Wind Speed"].at(0), sim["Wind Speed"].at(1),sim["Wind Speed"].at(2);
+    Parafoil::target << sim["Target"].at(0), sim["Target"].at(1);
 }
 
 
@@ -88,8 +90,8 @@ void Parafoil::print(){
 }
 
 
-Matrix<float, 3, 3> Parafoil::Inertia_calc(){
-    Matrix3f in;
+Matrix<double, 3, 3> Parafoil::Inertia_calc() const{
+    Matrix3d in;
     in.setZero();
     in(0,0) = (pow(b,2)+pow(th,2))*mpar +(pow(xb,2)+pow(zb,2))*mpay;
     in(1,1) = (pow(c,2)+pow(th,2))*mpar +(pow(zb,2)+pow(xb,2))*mpay;
@@ -99,71 +101,71 @@ Matrix<float, 3, 3> Parafoil::Inertia_calc(){
 }
 
 
-Matrix3f Parafoil::Omrot(const Vector3f &vec){
-    Matrix3f Mat;
+Matrix3d Parafoil::Omrot(const Vector3d &vec){
+    Matrix3d Mat;
     Mat << 0.0, -vec(2), vec(1), vec(2), 0.0, -vec(0), -vec(1), vec(0), 0.0;
     return Mat;
 }
 
 
-Vector3f Parafoil::Fa_b(const Vector3f &vec) {
-    Vector3f f;
+Vector3d Parafoil::Fa_b(const Vector3d &vec) {
+    Vector3d f;
     f = -0.5 * rho * sp * vec.norm() * CD_b(vec) * vec;
     return f;
 }
 
 
-Vector3f Parafoil::Fa_w(const Vector3f &vec) {
-    float q = 0.5 * rho * sw * vec.norm();
-    Vector3f f;
+Vector3d Parafoil::Fa_w(const Vector3d &vec) {
+    double q = 0.5 * rho * sw * vec.norm();
+    Vector3d f;
     f(0) = q * (CL_w(vec) * vec(2) - CD_b(vec) * vec(0));
     f(1) = -q * CD_b(vec) * vec(1);
     f(2) = q * (-CL_w(vec) * vec(0) - CD_b(vec) * vec(2));
     return f;
 }
 
-Vector3f Parafoil::W(const Vector3f &vec) {
-    Vector3f W;
+Vector3d Parafoil::W(const Vector3d &vec) {
+    Vector3d W;
     W(0) = g * (-sin(vec(1)));
     W(1) = g * (sin(vec(0)) * cos(vec(1)));
     W(2) = g * (cos(vec(0)) * cos(vec(1)));
     return W;
 }
 
-Vector3f Parafoil::Ma_w(Vector3f &vel, Vector3f &w, Vector3f rot) {
+Vector3d Parafoil::Ma_w(Vector3d &vel, Vector3d &w, Vector3d rot) {
     double q = 0.5*rho*sw*vel.squaredNorm();
     double vnorm = vel.norm();
-    Vector3f m;
+    Vector3d m;
     m(0) = q*(Clp*pow(b,2)*w(0)/(2*vnorm) + Clphi*b*rot(0));
     m(1) = q*(Cmq*pow(c,2)*w(1)/(2*vnorm) + Cm0*c + Cma*c*atan2(vel(2), vel(0)));
     m(2) = q*(Cnr*pow(b,2)*w(2)/(2*vnorm));
     return m;
 }
 
-float Parafoil::CD_b(const Vector3f &vec)
+double Parafoil::CD_b(const Vector3d &vec)
 {
-    float alpha = atan2(vec(2), vec(0));
-    float cd = CD0 + CDa * alpha*alpha;
+    double alpha = atan2(vec(2), vec(0));
+    double cd = CD0 + CDa * alpha*alpha;
     return cd;
 }
 
 
-float Parafoil::CL_w(const Vector3f &vec)
+double Parafoil::CL_w(const Vector3d &vec)
 {
-    float alpha = atan2(vec(2), vec(0));
-    float cl = CL0 + CLa * alpha;
+    double alpha = atan2(vec(2), vec(0));
+    double cl = CL0 + CLa * alpha;
     return cl;
 }
 
 
-Matrix<float, 3, 2> Parafoil::SFa(const Vector3f &vec, float delta){
+Matrix<double, 3, 2> Parafoil::SFa(const Vector3d &vec, double delta){
 
-    float sign;
+    double sign;
     if (delta >= 0.0)  sign = 1;
     else sign = -1;
 
-    float q = 0.5*rho*sw*vec.norm();
-    Matrix<float, 3, 2> F;
+    double q = 0.5*rho*sw*vec.norm();
+    Matrix<double, 3, 2> F;
     F(0,0) = q*(CLda*vec(2)-CDda*vec(0))*sign;
     F(0,1) = q*(CLds*vec(2)-CDds*vec(0));
     F(1,0) = q*(-CDda*vec(1)*sign);
@@ -173,10 +175,10 @@ Matrix<float, 3, 2> Parafoil::SFa(const Vector3f &vec, float delta){
     return F;
 }
 
-Matrix<float, 3, 2> Parafoil::SMa(const Vector3f &vec){
+Matrix<double, 3, 2> Parafoil::SMa(const Vector3d &vec){
 
-    float q = 0.5*rho*sw*vec.squaredNorm()*b/th;
-    Matrix<float, 3, 2> M;
+    double q = 0.5*rho*sw*vec.squaredNorm()*b/th;
+    Matrix<double, 3, 2> M;
     M(0,0) = q*Clda;
     M(0,1) = 0.0;
     M(1,0) = 0.0;
@@ -188,8 +190,8 @@ Matrix<float, 3, 2> Parafoil::SMa(const Vector3f &vec){
 }
 
 
-Matrix<float, 3, 3> Parafoil::Wrot(const Vector3f &vec){
-    Matrix3f Mat;
+Matrix<double, 3, 3> Parafoil::Wrot(const Vector3d &vec){
+    Matrix3d Mat;
     Mat.row(0) << 1.0, sin(vec(0))*tan(vec(1)), cos(vec(0))*tan(vec(1));
     Mat.row(1) << 0.0, cos(vec(0)), -sin(vec(0));
     Mat.row(2) << 0.0, sin(vec(0))/cos(vec(1)), cos(vec(0))/cos(vec(1));
@@ -197,12 +199,12 @@ Matrix<float, 3, 3> Parafoil::Wrot(const Vector3f &vec){
 }
 
 
-Matrix<float, 3, 3> Parafoil::QuatToAtt(const Matrix<float, 4, 1> &q){
-    Matrix<float,4 ,1 > quat = q.normalized();
-    Vector3f qv;
+Matrix<double, 3, 3> Parafoil::QuatToAtt(const Matrix<double, 4, 1> &q){
+    Matrix<double,4 ,1 > quat = q.normalized();
+    Vector3d qv;
     qv = quat.block<3, 1>(0, 0);
-    Matrix<float, 3, 3> rox;
-    Matrix<float,3,3> eye = Matrix<float, 3, 3>::Identity();
+    Matrix<double, 3, 3> rox;
+    Matrix<double,3,3> eye = Matrix<double, 3, 3>::Identity();
     rox << 0, -qv(2), qv(1),
             qv(2), 0, -qv(0),
             -qv(1), qv(0), 0;
@@ -211,10 +213,10 @@ Matrix<float, 3, 3> Parafoil::QuatToAtt(const Matrix<float, 4, 1> &q){
 }
 
 
-Vector3f Parafoil::QuatToEuler(const Matrix<float, 4, 1> &q){
+Vector3d Parafoil::QuatToEuler(const Matrix<double, 4, 1> &q){
 
-    Matrix<float,4 ,1 > quat = q.normalized();
-    Vector3f euler;
+    Matrix<double,4 ,1 > quat = q.normalized();
+    Vector3d euler;
     euler(0) = atan2((2*quat(0)*quat(3)+2*quat(1)*quat(2)),(-pow(quat(0),2)-pow(quat(1),2)+pow(quat(2),2)+pow(quat(3),2)));
     euler(1) = -asin(2*quat(0)*quat(2)-2*quat(1)*quat(3));
     euler(2) = atan2((2*quat(0)*quat(1)+2*quat(2)*quat(3)),(pow(quat(0),2)-pow(quat(1),2)-pow(quat(2),2)+pow(quat(3),2)));
@@ -222,8 +224,8 @@ Vector3f Parafoil::QuatToEuler(const Matrix<float, 4, 1> &q){
     return euler;
 }
 
-Matrix<float, 4, 4> Parafoil::Omega(const Vector3f &vel){
-    Matrix<float, 4,4> Om;
+Matrix<double, 4, 4> Parafoil::Omega(const Vector3d &vel){
+    Matrix<double, 4,4> Om;
     Om <<          0,  vel(2), -vel(1), vel(0),
             -vel(2),           0,  vel(0), vel(1),
             vel(1), -vel(0),           0, vel(2),
@@ -231,12 +233,12 @@ Matrix<float, 4, 4> Parafoil::Omega(const Vector3f &vel){
     return Om;
 }
 
-Matrix<float, 4, 1> Parafoil::EulToQuat(const Vector3f &v){
-    Matrix<float, 4, 1> quat;
-    Vector3f vec = v/2;
-    float c0 = cos(vec(0)), s0 = sin(vec(0));
-    float c1 = cos(vec(1)), s1 = sin(vec(1));
-    float c2 = cos(vec(2)), s2 = sin(vec(2));
+Matrix<double, 4, 1> Parafoil::EulToQuat(const Vector3d &v){
+    Matrix<double, 4, 1> quat;
+    Vector3d vec = v/2;
+    double c0 = cos(vec(0)), s0 = sin(vec(0));
+    double c1 = cos(vec(1)), s1 = sin(vec(1));
+    double c2 = cos(vec(2)), s2 = sin(vec(2));
 
     quat(3) = c0*c1*c2-s0*s1*s2;
     quat(0) = s0*c1*c2+c0*s1*s2;
@@ -250,37 +252,33 @@ Matrix<float, 4, 1> Parafoil::EulToQuat(const Vector3f &v){
 void Parafoil::my_system(const state_type &x, state_type &dxdt, const double t) {
 
     Vector3d pos_c {x(0), x(1), x(2)};
-    Matrix<float, 4,1> quat {x(3), x(4), x(5), x(6)};
-    Vector3f vel_c {x(7), x(8), x(9)};
-    Vector3f vel_rot {x(10), x(11), x(12)};
+    Matrix<double, 4,1> quat {x(3), x(4), x(5), x(6)};
+    Vector3d vel_c {x(7), x(8), x(9)};
+    Vector3d vel_rot {x(10), x(11), x(12)};
+    Vector3d euler = QuatToEuler(quat);
+    Vector3d vel_rot_eul = Wrot(euler) * vel_rot;
 
-    Vector3f euler = QuatToEuler(quat);
-    Vector3f vel_rot_eul = Wrot(euler) * vel_rot;
 
+    Matrix3d T = QuatToAtt(quat);
+    Matrix3d Sk_Om = Omrot(vel_rot);
+    Vector3d Vw = vel_c - T * wind;
+    Vector3d vel_b = Vw + Sk_Om * xgb;
+    Vector3d vel_p = Vw + Sk_Om * xgp;
+    Vector2d sig {x(13), x(14)};
 
-    Matrix3f T = QuatToAtt(quat);
-    Matrix3f Sk_Om = Omrot(vel_rot);
-    Vector3f Vw = vel_c - T * Wind();
-    Vector3f vel_b = Vw + Sk_Om * xgb;
-    Vector3f vel_p = Vw + Sk_Om * xgp;
-    Vector2f sig {0.0, 0.0};
+    sig = sig;
 
-    if (t >= 10 && t < 1000) { sig << 20.0 * pi / 180, 0.0 * pi / 180; }
-    if (sig(0) > sig(1)) { sig(0) = sig(0) - sig(1); }
-    else {
-        sig(1) = sig(0);
-        sig(0) = sig(0) - sig(1);
-    }
-
-    Vector3f Fa = Fa_w(vel_p);
-    Vector3f Fb = Fa_b(vel_b);
-    Matrix<float, 3, 2> Sfa = SFa(vel_p, sig(0));
+    Vector3d Fa = Fa_w(vel_p);
+    Vector3d Fb = Fa_b(vel_b);
+    Matrix<double, 3, 2> Sfa = SFa(vel_p, sig(0));
     dxdt.block<3, 1>(0, 0) = T.transpose() * vel_c;
     dxdt.block<4, 1>(3, 0) = 0.5 * Omega(vel_rot) * quat.normalized();
     dxdt.block<3, 1>(7, 0) = imto * (Fa + Fb + W(euler)*(mtot) -
                                       mtot * vel_rot.cross(vel_c) + Sfa * sig);
     dxdt.block<3, 1>(10, 0) = inv_inertia * (Ma_w(vel_p, vel_rot_eul, euler) + rgp * Fa + rgb * Fb -
                                      Sk_Om * (inv_inertia) * vel_rot + (SMa(vel_p) + rgp * Sfa) * sig);
+    dxdt(13) = 0.0;
+    dxdt(14) = 0.0;
 
 }
 
@@ -288,15 +286,17 @@ void Parafoil::simulate(){
     double t0 = 0.0;
     double t = t0;
 
-    vector<float> x_c, y_c, z_c, v_x, v_y, v_z, t_s, r_x, r_y, r_z;
-    float z_land = 0.0;
-    float z_ref = initial_state(2);
+    vector<double> x_c, y_c, z_c, v_x, v_y, v_z, t_s, r_x, r_y, r_z;
+    double z_land = 0.0;
+    double z_ref = initial_state(2);
 
-    state_type x=initial_state;
-    Matrix<float, 4, 1> quat;
-    Vector3f eul,vel;
+    state_type x = initial_state;
+    Matrix<double, 4, 1> quat;
+    Vector3d eul,vel;
 
-    auto sys = std::bind(&Parafoil::my_system, std::ref(*this) , std::placeholders::_1 , std::placeholders::_2 , std::placeholders::_3 );
+    auto sys = [&capture0 = *this](auto && PH1, auto && PH2, auto && PH3) {
+        capture0.my_system(std::forward<decltype(PH1)>(PH1),std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+    };
 
     auto start = std::chrono::high_resolution_clock::now();
     runge_kutta4<state_type> stepper;
@@ -325,7 +325,7 @@ void Parafoil::simulate(){
       auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
       cout << duration.count() << endl;
 
-    //WindEstimation(t_s, v_x, v_y);
+    WindEstimation(t_s, v_x, v_y);
 
     fstream file;
     file.open("simulation_results.txt", ios_base::out );
@@ -335,4 +335,73 @@ void Parafoil::simulate(){
     }
      file.close();
 
+}
+
+
+void Parafoil::simulate_control(){
+    double t0 = 0.0;
+    double t = t0;
+
+    vector<double> x_c, y_c, z_c, v_x, v_y, v_z, t_s, r_x, r_y, r_z, u_s;
+    double z_land = 0.0;
+    double z_ref = initial_state(2);
+    double errore = 0.0;
+    double u = 0.0;
+    state_type x=initial_state;
+    Matrix<double, 4, 1> quat;
+    Vector3d eul,vel;
+
+    auto sys = [&capture0 = *this](auto && PH1, auto && PH2, auto && PH3) {
+        capture0.my_system(std::forward<decltype(PH1)>(PH1),std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3));
+    };
+
+    Pid pid;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    runge_kutta4<state_type> stepper;
+    while (z_ref <= fin_alt) {
+
+        double tin = 0.0;
+        while(tin <= pid.dt){
+            tin += dt;
+            stepper.do_step(sys , x, tin, dt);
+            x_c.push_back(x(0));
+            y_c.push_back(x(1));
+            z_c.push_back(-x(2));
+            quat << x(3), x(4), x(5), x(6);
+            eul = QuatToEuler(quat);
+            r_x.push_back(eul(0) * 180 / pi);
+            r_y.push_back(eul(1) * 180 / pi);
+            r_z.push_back(eul(2) * 180 / pi);
+            vel << x(7),x(8),x(9);
+            vel = QuatToAtt(quat).transpose()*vel;
+            v_x.push_back(vel(0));
+            v_y.push_back(vel(1));
+            v_z.push_back(vel(2));
+            t_s.push_back(tin+t);
+            u_s.push_back(x(13));
+        }
+        t += pid.dt;
+        errore = pid.GuidanceSys(target, x.block<2,1>(0,0), eul(2));
+        cout << "Errore: "<< errore << endl;
+        u = pid.PI(errore,7,1);
+        u = pid.Saturation(u);
+        cout << "u: "<< u << endl;
+        x(13) = u;
+        x(14) = 0;
+
+        z_ref = x(2);
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    cout << duration.count() << endl;
+
+    fstream file;
+    file.open("simulation_control_results.txt", ios_base::out );
+    for (int i = 0; i<t_s.size(); i++)
+    {
+        file<< t_s[i] << " " << x_c[i] << " " << y_c[i] << " " << z_c[i] << " " << r_x[i] << " " << r_y[i] << " " << r_z[i] << " " << v_x[i] << " " << v_y[i] << " " << v_z[i] <<" "<< u_s[i]<< endl;
+    }
+    file.close();
 }

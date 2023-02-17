@@ -6,8 +6,8 @@
 using namespace std;
 using namespace Eigen;
 
-Vector3f Wind(){
-    Vector3f w;
+Vector3d Wind(){
+    Vector3d w;
     //srand((unsigned) time(nullptr));
     w << 0, 0, 0;
     //w(0) = w(0) + (rand()%5)/10.0;
@@ -54,7 +54,7 @@ void we_calc(Matrix<double, 2000, 2> V)
     A.col(1) = V.col(1) - Vy;
     b = 0.5*(V2.array()-V2_mean);
     Vector2d W = (A.transpose()*A).inverse()*(A.transpose()*b);
-    cout<< "Velocita' X:: "<<W(0)<<"  Velocita' Y:: "<<W(1)<< endl;
+    //cout<< "Velocita' X:: "<<W(0)<<"  Velocita' Y:: "<<W(1)<< endl;
 
 }
 
@@ -87,6 +87,6 @@ void WindEstimation(vector<double> time, vector<double> gpsN, vector<double> gps
             wind = wind + temp;
         }
     }
-    //cout<< "Velocita' X:: "<<wind(0)<<"  Velocita' Y:: "<<wind(1)<< endl;
+    cout<< "Velocita' X:: "<<wind(0)<<"  Velocita' Y:: "<<wind(1)<< endl;
 
 }

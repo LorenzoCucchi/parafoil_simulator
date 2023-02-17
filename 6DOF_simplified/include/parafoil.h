@@ -11,7 +11,7 @@ using namespace Eigen;
 using namespace boost::numeric::odeint;
 using json = nlohmann::json;
 
-typedef Matrix<float, 13, 1> state_type;
+typedef Matrix<double, 15, 1> state_type;
 
 class Parafoil {
 public:
@@ -19,78 +19,81 @@ public:
 
     void print();
 
-    Matrix<float, 3, 3> Inertia_calc();
+    Matrix<double, 3, 3> Inertia_calc() const;
 
-    Matrix<float, 3, 3> Omrot(const Vector3f &vec);
+    Matrix<double, 3, 3> Omrot(const Vector3d &vec);
 
-    Vector3f Fa_b(const Vector3f &vec);
+    Vector3d Fa_b(const Vector3d &vec);
 
-    Vector3f Fa_w(const Vector3f &vec);
+    Vector3d Fa_w(const Vector3d &vec);
 
-    Vector3f W(const Vector3f &vec);
+    Vector3d W(const Vector3d &vec);
 
-    Vector3f Ma_w(Vector3f &vel, Vector3f &w, Vector3f rot);
+    Vector3d Ma_w(Vector3d &vel, Vector3d &w, Vector3d rot);
 
-    float CD_b(const Vector3f &vec);
+    double CD_b(const Vector3d &vec);
 
-    float CL_w(const Vector3f &vec);
+    double CL_w(const Vector3d &vec);
 
-    Matrix<float, 3, 2> SFa(const Vector3f &vec, float delta);
+    Matrix<double, 3, 2> SFa(const Vector3d &vec, double delta);
 
-    Matrix<float, 3, 2> SMa(const Vector3f &vec);
+    Matrix<double, 3, 2> SMa(const Vector3d &vec);
 
-    Matrix<float, 3, 3> Wrot(const Vector3f &vec);
+    Matrix<double, 3, 3> Wrot(const Vector3d &vec);
 
-    Matrix<float, 3, 3> QuatToAtt(const Matrix<float, 4, 1> &q);
+    Matrix<double, 3, 3> QuatToAtt(const Matrix<double, 4, 1> &q);
 
-    Vector3f QuatToEuler(const Matrix<float, 4, 1> &q);
+    Vector3d QuatToEuler(const Matrix<double, 4, 1> &q);
 
-    Matrix<float, 4, 4> Omega(const Vector3f &vel);
+    Matrix<double, 4, 4> Omega(const Vector3d &vel);
 
-    static Matrix<float, 4, 1> EulToQuat(const Vector3f &v);
+    static Matrix<double, 4, 1> EulToQuat(const Vector3d &v);
 
     void my_system(const state_type &x, state_type &dxdt,double t);
 
     void simulate();
 
+    void simulate_control();
+
 private:
-    float mpay;
-    float mpar;
-    float mtot;
-    float imto;
-    float xb;
-    float zb;
-    float b;
-    float c;
-    float th;
-    float a;
-    float sw;
-    float sp;
-    Eigen::Matrix<float, 3, 3> inv_inertia;
-    Eigen::Vector3f xgp;
-    Eigen::Vector3f xgb;
-    Eigen::Matrix<float, 3, 3> rgp;
-    Eigen::Matrix<float, 3, 3> rgb;
-    float CL0;
-    float CLa;
-    float CD0;
-    float CDa;
-    float Clp;
-    float Clphi;
-    float Cmq;
-    float Cm0;
-    float Cnr;
-    float Cma;
-    float CLda;
-    float CLds;
-    float CDda;
-    float CDds;
-    float Clda;
-    float Cnda;
+    double mpay;
+    double mpar;
+    double mtot;
+    double imto;
+    double xb;
+    double zb;
+    double b;
+    double c;
+    double th;
+    double a;
+    double sw;
+    double sp;
+    Eigen::Matrix<double, 3, 3> inv_inertia;
+    Eigen::Vector3d xgp;
+    Eigen::Vector3d xgb;
+    Eigen::Matrix<double, 3, 3> rgp;
+    Eigen::Matrix<double, 3, 3> rgb;
+    double CL0;
+    double CLa;
+    double CD0;
+    double CDa;
+    double Clp;
+    double Clphi;
+    double Cmq;
+    double Cm0;
+    double Cnr;
+    double Cma;
+    double CLda;
+    double CLds;
+    double CDda;
+    double CDds;
+    double Clda;
+    double Cnda;
     state_type initial_state;
-    float dt;
-    float fin_alt;
-    Vector3f wind;
+    double dt;
+    double fin_alt;
+    Vector3d wind;
+    Vector2d target;
 
 };
 

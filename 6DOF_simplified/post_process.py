@@ -11,6 +11,7 @@ def read_data(file_path):
     vx = []
     vy = []
     vz = []
+    u = []
     with open(file_path, "r") as file:
         for line in file:
             data = line.strip().split()
@@ -24,10 +25,11 @@ def read_data(file_path):
             vx.append(float(data[7]))
             vy.append(float(data[8]))
             vz.append(float(data[9]))
-    return t, x, y, z, rx, ry, rz, vx, vy, vz
+            u.append(float(data[10]))
+    return t, x, y, z, rx, ry, rz, vx, vy, vz, u;
 
-file_path = "cmake-build-release/simulation_results.txt"
-t, x, y, z, rx, ry, rz, vx, vy, vz = read_data(file_path)
+file_path = "cmake-build-release/simulation_control_results.txt"
+t, x, y, z, rx, ry, rz, vx, vy, vz, u = read_data(file_path)
 
 
 fig, axs = plt.subplots(2, 2)
@@ -52,5 +54,10 @@ axs[1, 1].plot(x, y, label="position")
 axs[1, 1].set_title("position")
 axs[1, 1].legend(loc="best")
 
+
 plt.tight_layout()
+plt.show()
+
+plt.plot(t, u, label="input")
+plt.legend()
 plt.show()

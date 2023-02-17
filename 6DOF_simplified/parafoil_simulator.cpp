@@ -7,7 +7,7 @@ int main() {
 
     Parafoil prova("data.json");
 
-    prova.simulate();
+    prova.simulate_control();
 
     return 0;
 }

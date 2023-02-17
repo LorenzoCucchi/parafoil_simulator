@@ -7,7 +7,7 @@
 using namespace Eigen;
 using namespace std;
 
-Vector3f Wind();
+Vector3d Wind();
 void we(vector<double> time, vector<double> vx, vector<double> vy);
 void we_calc(Matrix<double, 2000, 2> V);
 void WindEstimation(vector<double> time, vector<double> vx, vector<double> vy);
