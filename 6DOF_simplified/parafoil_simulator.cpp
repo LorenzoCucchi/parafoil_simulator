@@ -5,7 +5,7 @@ using namespace std;
 int main() {
 
 
-    Parafoil prova("data.json");
+    Parafoil prova("..\\data.json");
 
     if (prova.boolControl == 1){
         prova.simulate_control();
